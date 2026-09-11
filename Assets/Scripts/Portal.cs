@@ -10,9 +10,17 @@ public class Portal : MonoBehaviour
     [SerializeField]
     private float exitOffset = 1f;
 
-    // cooldown keyed on the ROOT PortalTraveler, not individual limb
-    // rigidbodies, so multiple limbs touching the same portal frame
-    // don't trigger multiple redundant teleports
+    [Header("Exit Angle")]
+    [Tooltip("If true, ignore the auto-computed angle between the two portals and use Manual Exit Angle instead. Use this when your sprite's 'forward' doesn't visually line up with the portal's up-vector.")]
+    [SerializeField]
+    private bool useManualExitAngle = false;
+
+    [Tooltip("Degrees. Only used if Use Manual Exit Angle is on. This becomes both the exit direction (relative to this portal's linked exit point) and the rotation/velocity delta applied to the traveler.")]
+    [SerializeField]
+    private float manualExitAngleDegrees = 0f;
+
+    // cooldown keyed on the PortalTraveler so the same object can't
+    // immediately re-trigger a teleport the moment it exits
     private static HashSet<PortalTraveler> teleportCooldown
         = new HashSet<PortalTraveler>();
 
@@ -22,7 +30,6 @@ public class Portal : MonoBehaviour
         if (rb == null)
             return;
 
-        // whichever limb touched the trigger, find its rig's root
         PortalTraveler traveler = rb.GetComponentInParent<PortalTraveler>();
         if (traveler == null)
             return; // not a portal-capable object, ignore
@@ -30,23 +37,34 @@ public class Portal : MonoBehaviour
         if (teleportCooldown.Contains(traveler))
             return;
 
-        Teleport(traveler, rb);
+        Teleport(traveler);
     }
 
-    private void Teleport(PortalTraveler traveler, Rigidbody2D triggeringBody)
+    private void Teleport(PortalTraveler traveler)
     {
         teleportCooldown.Add(traveler);
 
-        float angleDifference =
-            linkedPortal.transform.eulerAngles.z
-            - transform.eulerAngles.z
-            + 180f;
+        float angleDifference;
+        Vector2 exitDirection;
 
-        Vector2 exitDirection = linkedPortal.transform.up;
-        Vector2 newRootPosition =
+        if (useManualExitAngle)
+        {
+            angleDifference = manualExitAngleDegrees;
+            exitDirection = Quaternion.Euler(0f, 0f, manualExitAngleDegrees) * linkedPortal.transform.up;
+        }
+        else
+        {
+            angleDifference =
+                linkedPortal.transform.eulerAngles.z
+                - transform.eulerAngles.z
+                + 180f;
+            exitDirection = linkedPortal.transform.up;
+        }
+
+        Vector2 newPosition =
             (Vector2)linkedPortal.transform.position + exitDirection * exitOffset;
 
-        traveler.TeleportGroup(newRootPosition, angleDifference);
+        traveler.Teleport(newPosition, angleDifference);
 
         StartCoroutine(RemoveCooldown(traveler));
     }

@@ -6,6 +6,9 @@ using UnityEngine;
 // nothing snaps or stretches on teleport.
 public class PortalTraveler : MonoBehaviour
 {
+    [Tooltip("If true, the character's visual orientation rotates to match the portal (like Portal's wall/ceiling portals). If false, the character stays upright and only its velocity direction is redirected - use this for a standing humanoid sprite.")]
+    public bool rotateVisualOrientation = false;
+
     Rigidbody2D[] allBodies;
     Rigidbody2D root; // this object's own rigidbody = the reference point
 
@@ -15,8 +18,8 @@ public class PortalTraveler : MonoBehaviour
         allBodies = GetComponentsInChildren<Rigidbody2D>();
     }
 
-    // newRootPosition = where the torso should end up
-    // rotationDeltaDegrees = how much to rotate the whole group (portal angle difference)
+    // newRootPosition = where the torso/root should end up
+    // rotationDeltaDegrees = angle difference between the two portals
     public void TeleportGroup(Vector2 newRootPosition, float rotationDeltaDegrees)
     {
         Quaternion rot = Quaternion.Euler(0f, 0f, rotationDeltaDegrees);
@@ -28,7 +31,11 @@ public class PortalTraveler : MonoBehaviour
             Vector2 rotatedOffset = rot * offsetFromRoot;
 
             rb.position = newRootPosition + rotatedOffset;
-            rb.rotation += rotationDeltaDegrees;
+
+            if (rotateVisualOrientation)
+                rb.rotation += rotationDeltaDegrees;
+            // else: leave rb.rotation untouched, character stays upright
+
             rb.linearVelocity = rot * rb.linearVelocity;
             // angularVelocity (spin) doesn't need rotating, it's not a directional vector
         }

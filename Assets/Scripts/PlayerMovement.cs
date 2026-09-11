@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class TorsoMover : MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
     public float moveForce = 15f;
     public float jumpForce = 8f;

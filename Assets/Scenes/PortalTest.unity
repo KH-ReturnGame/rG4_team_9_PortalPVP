@@ -1231,6 +1231,63 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e703a258627fdce45a9e795a4214af6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Portal
+--- !u!1001 &4641489162907663198
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -3.89081
+      objectReference: {fileID: 0}
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.8032799
+      objectReference: {fileID: 0}
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 671822992356254796, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8177743183396611552, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
+      propertyPath: m_Name
+      value: Bomb
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
 --- !u!1001 &8319832543176671969
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1303,3 +1360,4 @@ SceneRoots:
   - {fileID: 1936095527}
   - {fileID: 8319832543176671969}
   - {fileID: 1197247626}
+  - {fileID: 4641489162907663198}

@@ -1,33 +1,44 @@
 using UnityEngine;
 
-// Put this on the player object itself (the one with the Rigidbody2D
-// and the sprite). Handles moving that single object through a portal:
-// position, optional visual rotation, and velocity redirect.
 public class PortalTraveler : MonoBehaviour
 {
-    [Tooltip("If true, the sprite rotates to match the portal's orientation delta. If false, the sprite stays upright and only velocity direction is redirected - use this for a standing humanoid sprite.")]
+    [Tooltip("포탈을 나올 때 오브젝트 자체도 출구 방향으로 회전할지 여부")]
     public bool rotateVisualOrientation = false;
 
-    Rigidbody2D rb;
+    private Rigidbody2D rb;
 
-    void Awake()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
     }
 
-    // newPosition = where this object should end up
-    // rotationDeltaDegrees = angle difference between the two portals
-    public void Teleport(Vector2 newPosition, float rotationDeltaDegrees)
+    // newPosition = 순간이동할 위치
+    // exitDirection = 출구 포탈이 바라보는 방향
+    public void Teleport(Vector2 newPosition, Vector2 exitDirection)
     {
-        Quaternion rot = Quaternion.Euler(0f, 0f, rotationDeltaDegrees);
+        // 포탈에 들어가기 직전의 '속력'만 저장
+        float speed = rb.linearVelocity.magnitude;
 
+
+        // 반대편 포탈 중앙으로 이동
         rb.position = newPosition;
 
-        if (rotateVisualOrientation)
-            rb.rotation += rotationDeltaDegrees;
-        // else: leave rb.rotation untouched, sprite stays upright
 
-        rb.linearVelocity = rot * rb.linearVelocity;
-        // angularVelocity (spin) doesn't need rotating, it's not a directional vector
+        // 출구 방향으로 오브젝트 자체도 회전시키고 싶다면
+        if (rotateVisualOrientation)
+        {
+            float angle =
+                Mathf.Atan2(exitDirection.y, exitDirection.x)
+                * Mathf.Rad2Deg
+                - 90f;
+
+            rb.rotation = angle;
+        }
+
+
+        // 기존 방향은 버리고,
+        // 출구 포탈 방향으로 같은 속력으로 발사
+        rb.linearVelocity =
+            exitDirection.normalized * speed;
     }
 }

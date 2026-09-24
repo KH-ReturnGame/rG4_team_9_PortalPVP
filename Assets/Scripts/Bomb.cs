@@ -3,29 +3,62 @@ using UnityEngine;
 
 public class Bomb : MonoBehaviour
 {
-    [Header("폭탄 시간")]
-    [SerializeField]
-    private float countdownTime = 5f;
+    [Header("Countdown")]
 
+    // 바닥과 처음 접촉했을 때 시작되는 타이머
+    [SerializeField]
+    private float groundCountdownTime = 12f;
+
+    // 플레이어, 상자 등 다른 오브젝트와
+    // 처음 접촉했을 때 시작되는 타이머
+    [SerializeField]
+    private float objectCountdownTime = 5f;
+
+    // 가장 먼저 끝나는 타이머가
+    // 이 시간 이하가 되면 점멸 시작
     [SerializeField]
     private float warningTime = 1.5f;
 
+    // 빨강 ↔ 검정 점멸 간격
     [SerializeField]
     private float blinkInterval = 0.1f;
 
 
-    [Header("폭발")]
+    [Header("Explosion")]
+
+    // 폭발 범위
     [SerializeField]
     private float explosionRadius = 3f;
 
+    // 폭발로 밀어내는 힘
     [SerializeField]
     private float explosionForce = 10f;
 
 
     private SpriteRenderer spriteRenderer;
 
-    // 이미 카운트다운이 시작됐는지 확인
-    private bool isActivated = false;
+
+    // -------------------------
+    // 타이머 상태
+    // -------------------------
+
+    // 바닥 타이머가 작동 중인지
+    private bool groundTimerActive = false;
+
+    // 일반 오브젝트 타이머가 작동 중인지
+    private bool objectTimerActive = false;
+
+
+    // 각 타이머의 남은 시간
+    private float groundTimeRemaining;
+    private float objectTimeRemaining;
+
+
+    // 점멸 중인지
+    private bool isBlinking = false;
+
+    // 이미 폭발했는지
+    private bool hasExploded = false;
 
 
     private void Awake()
@@ -37,56 +70,158 @@ public class Bomb : MonoBehaviour
     }
 
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void Update()
     {
-        // 이미 작동 중이면 다시 시작하지 않음
-        if (isActivated)
+        // 이미 폭발했다면 더 이상 처리하지 않음
+        if (hasExploded)
             return;
 
-        isActivated = true;
 
-        // 카운트다운 시작
-        StartCoroutine(Countdown());
+        // -------------------------
+        // 바닥 타이머
+        // -------------------------
+
+        if (groundTimerActive)
+        {
+            groundTimeRemaining -= Time.deltaTime;
+
+            // 바닥 타이머 종료
+            if (groundTimeRemaining <= 0f)
+            {
+                Explode();
+                return;
+            }
+        }
+
+
+        // -------------------------
+        // 오브젝트 타이머
+        // -------------------------
+
+        if (objectTimerActive)
+        {
+            objectTimeRemaining -= Time.deltaTime;
+
+            // 오브젝트 타이머 종료
+            if (objectTimeRemaining <= 0f)
+            {
+                Explode();
+                return;
+            }
+        }
+
+
+        // 현재 가장 빨리 끝나는 타이머의
+        // 남은 시간 확인
+        float shortestTime = Mathf.Infinity;
+
+        if (groundTimerActive)
+        {
+            shortestTime =
+                Mathf.Min(
+                    shortestTime,
+                    groundTimeRemaining
+                );
+        }
+
+        if (objectTimerActive)
+        {
+            shortestTime =
+                Mathf.Min(
+                    shortestTime,
+                    objectTimeRemaining
+                );
+        }
+
+
+        // 가장 빠른 타이머가 1.5초 이하라면
+        // 점멸 시작
+        if (shortestTime <= warningTime && !isBlinking)
+        {
+            isBlinking = true;
+
+            StartCoroutine(Blink());
+        }
     }
 
 
-    private IEnumerator Countdown()
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        // 5초 중 처음 3.5초 기다림
-        yield return new WaitForSeconds(
-            countdownTime - warningTime
-        );
+        // 이미 폭발했다면 무시
+        if (hasExploded)
+            return;
 
 
-        // 마지막 1.5초 동안 점멸
-        float remainingTime = warningTime;
+        // =========================
+        // 바닥과 충돌
+        // =========================
 
-        while (remainingTime > 0f)
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            // 바닥 타이머가 아직 시작되지 않았다면
+            if (!groundTimerActive)
+            {
+                groundTimerActive = true;
+
+                groundTimeRemaining =
+                    groundCountdownTime;
+            }
+
+            return;
+        }
+
+
+        // =========================
+        // 그 외의 오브젝트와 충돌
+        // =========================
+
+        // 일반 오브젝트 타이머가
+        // 아직 시작되지 않았다면 시작
+        if (!objectTimerActive)
+        {
+            objectTimerActive = true;
+
+            objectTimeRemaining =
+                objectCountdownTime;
+        }
+    }
+
+
+    private IEnumerator Blink()
+    {
+        while (!hasExploded)
         {
             // 빨간색
             spriteRenderer.color = Color.red;
 
-            yield return new WaitForSeconds(blinkInterval);
+            yield return new WaitForSeconds(
+                blinkInterval
+            );
 
-            remainingTime -= blinkInterval;
+
+            if (hasExploded)
+                yield break;
 
 
             // 검은색
             spriteRenderer.color = Color.black;
 
-            yield return new WaitForSeconds(blinkInterval);
-
-            remainingTime -= blinkInterval;
+            yield return new WaitForSeconds(
+                blinkInterval
+            );
         }
-
-
-        // 시간이 끝나면 폭발
-        Explode();
     }
 
 
     private void Explode()
     {
+        // 중복 폭발 방지
+        if (hasExploded)
+            return;
+
+        hasExploded = true;
+
+
         // 폭발 범위 안의 모든 Collider2D 찾기
         Collider2D[] objects =
             Physics2D.OverlapCircleAll(
@@ -97,24 +232,30 @@ public class Bomb : MonoBehaviour
 
         foreach (Collider2D obj in objects)
         {
-            Rigidbody2D rb = obj.attachedRigidbody;
+            Rigidbody2D rb =
+                obj.attachedRigidbody;
 
-            // Rigidbody2D가 없는 오브젝트는 밀 수 없음
+
+            // Rigidbody2D가 없다면 무시
             if (rb == null)
                 continue;
 
-            // 자기 자신은 제외
+
+            // 자기 자신은 무시
             if (rb.gameObject == gameObject)
                 continue;
 
 
             // 폭탄 → 오브젝트 방향 계산
             Vector2 direction =
-                (rb.worldCenterOfMass - (Vector2)transform.position)
-                .normalized;
+                rb.worldCenterOfMass
+                - (Vector2)transform.position;
 
 
-            // 해당 방향으로 순간적인 힘을 가함
+            direction.Normalize();
+
+
+            // 순간적으로 밀어냄
             rb.AddForce(
                 direction * explosionForce,
                 ForceMode2D.Impulse
@@ -122,12 +263,12 @@ public class Bomb : MonoBehaviour
         }
 
 
-        // 폭발 후 폭탄 제거
+        // 폭탄 제거
         Destroy(gameObject);
     }
 
 
-    // Scene 창에서 폭발 범위를 확인하기 위한 원
+    // Scene 창에서 폭발 범위 확인
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireSphere(

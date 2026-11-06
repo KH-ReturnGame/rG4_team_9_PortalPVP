@@ -492,8 +492,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Portal
   linkedPortal: {fileID: 856289952}
   exitOffset: 0
-  useManualExitAngle: 0
-  manualExitAngleDegrees: 0
 --- !u!212 &755400168
 SpriteRenderer:
   serializedVersion: 2
@@ -738,8 +736,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Portal
   linkedPortal: {fileID: 755400167}
   exitOffset: 0
-  useManualExitAngle: 0
-  manualExitAngleDegrees: 0
 --- !u!212 &856289953
 SpriteRenderer:
   serializedVersion: 2
@@ -1325,6 +1321,7 @@ GameObject:
   - component: {fileID: 1936095529}
   - component: {fileID: 1936095528}
   - component: {fileID: 1936095531}
+  - component: {fileID: 1936095532}
   m_Layer: 0
   m_Name: P1
   m_TagString: Untagged
@@ -1484,8 +1481,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TorsoMover
   moveForce: 15
   jumpForce: 8
-  maxSpeed: 1
+  MaxSpeedX: 20
+  MaxSpeedY: 20
   groundFriction: 15
+  airControlMultiplier: 0.15
   leftKey: 97
   rightKey: 100
   jumpKey: 119
@@ -1502,6 +1501,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PortalTraveler
   rotateVisualOrientation: 0
+--- !u!114 &1936095532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1936095525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31988b08e864bd54f835fb16fe157592, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectHealth
+  maxHealth: 100
+  destroyOnDeath: 1
 --- !u!1 &2029647892
 GameObject:
   m_ObjectHideFlags: 0
@@ -1676,3 +1689,5 @@ SceneRoots:
   - {fileID: 8319832543176671969}
   - {fileID: 1197247626}
   - {fileID: 4641489162907663198}
+  - {fileID: 755400169}
+  - {fileID: 856289954}

@@ -16,22 +16,31 @@ public class PlayerMovement : MonoBehaviour
     public KeyCode rightKey = KeyCode.D;
     public KeyCode jumpKey = KeyCode.W;
 
+
     Rigidbody2D rb;
     bool grounded;
 
     void Awake() { rb = GetComponent<Rigidbody2D>(); }
 
+    [Header("Control Locks (set by other scripts, e.g. the portal gun)")]
+    public bool canMoveHorizontally = true;
+    public bool canJump = true;
+
     void Update()
     {
-        if (Input.GetKeyDown(jumpKey) && grounded)
+        if (canJump && Input.GetKeyDown(jumpKey) && grounded)
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
     void FixedUpdate()
     {
         float dir = 0f;
-        if (Input.GetKey(leftKey)) dir -= 1f;
-        if (Input.GetKey(rightKey)) dir += 1f;
+        if (canMoveHorizontally)
+        {
+            if (Input.GetKey(leftKey)) dir -= 1f;
+            if (Input.GetKey(rightKey)) dir += 1f;
+        }
+        // ...everything below stays exactly the same
 
         if (dir != 0f)
         {

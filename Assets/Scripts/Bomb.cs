@@ -1,133 +1,236 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(ObjectHealth))]
 public class Bomb : MonoBehaviour
 {
-    [Header("폭탄 시간")]
-    [SerializeField]
-    private float countdownTime = 5f;
+    [Header("Countdown")]
+    [SerializeField] private float groundCountdownTime = 12f;
+    [SerializeField] private float objectCountdownTime = 5f;
+    [SerializeField] private float warningTime = 1.5f;
+    [SerializeField] private float blinkInterval = 0.1f;
 
-    [SerializeField]
-    private float warningTime = 1.5f;
-
-    [SerializeField]
-    private float blinkInterval = 0.1f;
-
-
-    [Header("폭발")]
-    [SerializeField]
-    private float explosionRadius = 3f;
-
-    [SerializeField]
-    private float explosionForce = 10f;
-
+    [Header("Explosion")]
+    [SerializeField] private float explosionRadius = 3f;
+    [SerializeField] private float explosionForce = 10f;
+    [SerializeField] private float maxExplosionDamage = 100f;
 
     private SpriteRenderer spriteRenderer;
+    private ObjectHealth health;
 
-    // 이미 카운트다운이 시작됐는지 확인
-    private bool isActivated = false;
+    private bool groundTimerActive = false;
+    private bool objectTimerActive = false;
 
+    private float groundTimeRemaining;
+    private float objectTimeRemaining;
+
+    private bool isBlinking = false;
+    private bool hasExploded = false;
 
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        health = GetComponent<ObjectHealth>();
 
-        // 처음에는 검은색
         spriteRenderer.color = Color.black;
     }
 
+    private void OnEnable()
+    {
+        // 폭탄 HP가 0이 되면 Explode 실행
+        health.OnDeath += Explode;
+    }
+
+    private void OnDisable()
+    {
+        health.OnDeath -= Explode;
+    }
+
+    private void Update()
+    {
+        if (hasExploded)
+            return;
+
+        // 바닥 타이머
+        if (groundTimerActive)
+        {
+            groundTimeRemaining -= Time.deltaTime;
+
+            if (groundTimeRemaining <= 0f)
+            {
+                TimerFinished();
+                return;
+            }
+        }
+
+        // 오브젝트 타이머
+        if (objectTimerActive)
+        {
+            objectTimeRemaining -= Time.deltaTime;
+
+            if (objectTimeRemaining <= 0f)
+            {
+                TimerFinished();
+                return;
+            }
+        }
+
+        // 두 타이머 중 더 빨리 끝나는 시간
+        float shortestTime = Mathf.Infinity;
+
+        if (groundTimerActive)
+        {
+            shortestTime = Mathf.Min(
+                shortestTime,
+                groundTimeRemaining
+            );
+        }
+
+        if (objectTimerActive)
+        {
+            shortestTime = Mathf.Min(
+                shortestTime,
+                objectTimeRemaining
+            );
+        }
+
+        // 폭발 직전 점멸
+        if (shortestTime <= warningTime && !isBlinking)
+        {
+            isBlinking = true;
+            StartCoroutine(Blink());
+        }
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // 이미 작동 중이면 다시 시작하지 않음
-        if (isActivated)
+        if (hasExploded)
             return;
 
-        isActivated = true;
+        // 바닥 충돌 → 12초
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            if (!groundTimerActive)
+            {
+                groundTimerActive = true;
+                groundTimeRemaining = groundCountdownTime;
+            }
 
-        // 카운트다운 시작
-        StartCoroutine(Countdown());
+            return;
+        }
+
+        // 다른 오브젝트 충돌 → 5초
+        if (!objectTimerActive)
+        {
+            objectTimerActive = true;
+            objectTimeRemaining = objectCountdownTime;
+        }
     }
 
-
-    private IEnumerator Countdown()
+    // 타이머 종료 시 폭탄 자신에게 데미지
+    private void TimerFinished()
     {
-        // 5초 중 처음 3.5초 기다림
-        yield return new WaitForSeconds(
-            countdownTime - warningTime
-        );
+        // 현재 체력만큼 피해를 줘서 HP를 0으로 만듦
+        health.TakeDamage(health.GetCurrentHealth());
+    }
 
-
-        // 마지막 1.5초 동안 점멸
-        float remainingTime = warningTime;
-
-        while (remainingTime > 0f)
+    private IEnumerator Blink()
+    {
+        while (!hasExploded)
         {
-            // 빨간색
             spriteRenderer.color = Color.red;
 
             yield return new WaitForSeconds(blinkInterval);
 
-            remainingTime -= blinkInterval;
+            if (hasExploded)
+                yield break;
 
-
-            // 검은색
             spriteRenderer.color = Color.black;
 
             yield return new WaitForSeconds(blinkInterval);
-
-            remainingTime -= blinkInterval;
         }
-
-
-        // 시간이 끝나면 폭발
-        Explode();
     }
 
-
+    // HP가 0이 되었을 때 호출되는 함수
     private void Explode()
     {
-        // 폭발 범위 안의 모든 Collider2D 찾기
+        if (hasExploded)
+            return;
+
+        hasExploded = true;
+
+        Vector2 explosionCenter = transform.position;
+
         Collider2D[] objects =
             Physics2D.OverlapCircleAll(
-                transform.position,
+                explosionCenter,
                 explosionRadius
             );
 
+        HashSet<ObjectHealth> damagedObjects =
+            new HashSet<ObjectHealth>();
+
+        HashSet<Rigidbody2D> pushedObjects =
+            new HashSet<Rigidbody2D>();
 
         foreach (Collider2D obj in objects)
         {
+            // 폭탄 자신의 HP는 다시 감소시키지 않음
+            if (obj.GetComponentInParent<Bomb>() == this)
+                continue;
+
+            Vector2 closestPoint =
+                obj.ClosestPoint(explosionCenter);
+
+            float distance = Vector2.Distance(
+                explosionCenter,
+                closestPoint
+            );
+
+            float damageRatio = Mathf.Clamp01(
+                1f - distance / explosionRadius
+            );
+
+            float damage =
+                maxExplosionDamage * damageRatio;
+
+            // 다른 오브젝트에 데미지
+            ObjectHealth targetHealth =
+                obj.GetComponentInParent<ObjectHealth>();
+
+            if (targetHealth != null &&
+                damagedObjects.Add(targetHealth))
+            {
+                targetHealth.TakeDamage(damage);
+            }
+
+            // 폭발력
             Rigidbody2D rb = obj.attachedRigidbody;
 
-            // Rigidbody2D가 없는 오브젝트는 밀 수 없음
             if (rb == null)
                 continue;
 
-            // 자기 자신은 제외
-            if (rb.gameObject == gameObject)
+            if (!pushedObjects.Add(rb))
                 continue;
 
-
-            // 폭탄 → 오브젝트 방향 계산
             Vector2 direction =
-                (rb.worldCenterOfMass - (Vector2)transform.position)
-                .normalized;
+                rb.worldCenterOfMass - explosionCenter;
 
+            if (direction.sqrMagnitude < 0.0001f)
+                direction = Vector2.up;
 
-            // 해당 방향으로 순간적인 힘을 가함
+            direction.Normalize();
+
             rb.AddForce(
                 direction * explosionForce,
                 ForceMode2D.Impulse
             );
         }
 
-
-        // 폭발 후 폭탄 제거
         Destroy(gameObject);
     }
 
-
-    // Scene 창에서 폭발 범위를 확인하기 위한 원
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireSphere(

@@ -1672,7 +1672,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RandomSpawner
   prefab: {fileID: 8177743183396611552, guid: 14da7009e571fdf42aa3063d57b7620d, type: 3}
-  spawnInterval: 2
+  spawnInterval: 1
   randomizeInterval: 0
   minInterval: 1
   maxInterval: 4
@@ -2417,6 +2417,7 @@ GameObject:
   - component: {fileID: 1519649071}
   - component: {fileID: 1519649070}
   - component: {fileID: 1519649076}
+  - component: {fileID: 1519649077}
   m_Layer: 0
   m_Name: P2
   m_TagString: Untagged
@@ -2634,6 +2635,20 @@ MonoBehaviour:
   portalFacingAxis: {x: 1, y: 0, z: 0}
   aimLine: {fileID: 1112791845}
   aimPivot: {fileID: 0}
+--- !u!114 &1519649077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1519649069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31988b08e864bd54f835fb16fe157592, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectHealth
+  maxHealth: 100
+  destroyOnDeath: 1
 --- !u!1 &1546424519
 GameObject:
   m_ObjectHideFlags: 0
@@ -3102,6 +3117,7 @@ GameObject:
   - component: {fileID: 1936095528}
   - component: {fileID: 1936095531}
   - component: {fileID: 1936095532}
+  - component: {fileID: 1936095533}
   m_Layer: 0
   m_Name: P1
   m_TagString: Untagged
@@ -3319,6 +3335,20 @@ MonoBehaviour:
   portalFacingAxis: {x: 1, y: 0, z: 0}
   aimLine: {fileID: 269993731}
   aimPivot: {fileID: 0}
+--- !u!114 &1936095533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1936095525}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31988b08e864bd54f835fb16fe157592, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ObjectHealth
+  maxHealth: 100
+  destroyOnDeath: 1
 --- !u!1 &2029647892
 GameObject:
   m_ObjectHideFlags: 0

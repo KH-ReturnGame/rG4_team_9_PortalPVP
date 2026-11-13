@@ -15,7 +15,7 @@ public class ObjectHealth : MonoBehaviour
 
     private bool isDead = false;
 
-    // HP°¡ 0ÀÌ µÇ¾úÀ» ¶§ ¹ß»ýÇÏ´Â ÀÌº¥Æ®
+    // HPï¿½ï¿½ 0ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï´ï¿½ ï¿½Ìºï¿½Æ®
     public event Action OnDeath;
 
     private void Awake()
@@ -59,7 +59,7 @@ public class ObjectHealth : MonoBehaviour
 
         isDead = true;
 
-        // ´Ù¸¥ ½ºÅ©¸³Æ®¿¡ »ç¸Á ¾Ë¸²
+        // ï¿½Ù¸ï¿½ ï¿½ï¿½Å©ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½
         OnDeath?.Invoke();
 
         if (destroyOnDeath)
